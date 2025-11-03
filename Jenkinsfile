@@ -1,10 +1,43 @@
 pipeline {
     agent any
 
+    // Run only when code is pushed/merged to 'dev' branch
+    triggers {
+        pollSCM('* * * * *') // optional: checks every minute
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/akashpandit3010/Devops-Lab.git'
+                git branch: 'dev', url: 'https://github.com/akashpandit3010/Devops-Lab.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo '📦 Installing Python dependencies...'
+                bat '''
+                python -m venv venv
+                call venv\\Scripts\\activate
+                pip install --upgrade pip
+                pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+                echo '🧪 Running automated tests...'
+                bat '''
+                call venv\\Scripts\\activate
+                pytest --maxfail=1 --disable-warnings -q --junitxml=pytest-report.xml
+                '''
+            }
+            post {
+                always {
+                    junit 'pytest-report.xml'   // Publishes test results in Jenkins UI
+                }
             }
         }
 
@@ -51,7 +84,7 @@ pipeline {
             bat 'docker logs hello-devops-container || echo No logs found'
         }
         success {
-            echo "🎉 Build & container ran successfully!"
+            echo "🎉 All tests passed and container is healthy!"
         }
         failure {
             echo "⚠️ Build failed — check above logs."

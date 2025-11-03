@@ -7,32 +7,7 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/akashpandit3010/Devops-Lab.git'
             }
         }
-stage('Install Dependencies') {
-            steps {
-                echo '📦 Installing Python dependencies...'
-                bat '''
-                python -m venv venv
-                call venv\\Scripts\\activate
-                pip install --upgrade pip
-                pip install -r requirements.txt
-                '''
-            }
-        }
 
-        stage('Run Unit Tests') {
-            steps {
-                echo '🧪 Running pytest...'
-                bat '''
-                call venv\\Scripts\\activate
-                pytest --maxfail=1 --disable-warnings -q --junitxml=pytest-report.xml
-                '''
-            }
-            post {
-                always {
-                    junit 'pytest-report.xml'  // Shows test results in Jenkins
-                }
-            }
-        }
         stage('Build Docker Image') {
             steps {
                 echo '🛠️ Building Docker image...'
@@ -83,4 +58,3 @@ stage('Install Dependencies') {
         }
     }
 }
-

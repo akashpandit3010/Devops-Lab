@@ -4,27 +4,32 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                echo '📦 Checking out source code...'
                 git branch: 'main', url: 'https://github.com/akashpandit3010/Devops-Lab.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo '🛠️ Building Docker image...'
-                bat 'docker build -t hello-devops-app:v2 .'
+                echo '🛠️ Building Docker image for SmartCalc...'
+                bat 'docker build -t smartcalc-service:latest .'
             }
         }
 
         stage('Run Docker Container') {
             steps {
-                echo '🚀 Running Docker container...'
+                echo '🚀 Running SmartCalc container...'
                 bat '''
-                for /F "tokens=*" %%i in ('docker ps -aq -f "name=hello-devops-container"') do (
+                REM Stop and remove old container if exists
+                for /F "tokens=*" %%i in ('docker ps -aq -f "name=smartcalc-container"') do (
                     docker stop %%i  
                     docker rm %%i
                 )
-                docker run -d -p 5000:5000 --name hello-devops-container hello-devops-app:v2
-                REM Wait for container to start
+
+                REM Run new container
+                docker run -d -p 5000:5000 --name smartcalc-container smartcalc-service:latest
+
+                REM Wait a few seconds for container to start
                 ping 127.0.0.1 -n 6 >nul
                 '''
             }
@@ -32,13 +37,14 @@ pipeline {
 
         stage('Health Check') {
             steps {
-                echo '🩺 Checking health...'
+                echo '🩺 Checking if SmartCalc is reachable...'
                 script {
-                    def result = bat(returnStatus: true, script: 'curl -s http://localhost:5000 >nul')
+                    // Verify if the web calculator is up
+                    def result = bat(returnStatus: true, script: 'curl -s http://localhost:5000 | findstr "Calculator"')
                     if (result != 0) {
-                        error("❌ Health check failed! App not reachable.")
+                        error("❌ Health check failed! Calculator page not reachable.")
                     } else {
-                        echo "✅ Flask app is up and reachable!"
+                        echo "✅ SmartCalc web app is up and running on http://localhost:5000"
                     }
                 }
             }
@@ -48,13 +54,13 @@ pipeline {
     post {
         always {
             echo "📋 Showing container logs:"
-            bat 'docker logs hello-devops-container || echo No logs found'
+            bat 'docker logs smartcalc-container || echo No logs found'
         }
         success {
-            echo "🎉 Build & container ran successfully!"
+            echo "🎉 SmartCalc app built and deployed successfully!"
         }
         failure {
-            echo "⚠️ Build failed — check above logs."
+            echo "⚠️ Build failed — check the logs above."
         }
     }
 }

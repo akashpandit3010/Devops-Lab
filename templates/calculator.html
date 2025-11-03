@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Calculator</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background: #f0f2f5;
+            padding-top: 60px;
+        }
+        form {
+            background: white;
+            display: inline-block;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        input, select {
+            margin: 5px;
+            padding: 8px;
+            width: 150px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h2>🧮 Simple Calculator</h2>
+    <form method="POST" action="/calculate">
+        <input type="number" step="any" name="num1" placeholder="Enter first number" required><br>
+        <input type="number" step="any" name="num2" placeholder="Enter second number" required><br>
+        <select name="operation">
+            <option value="add">Addition (+)</option>
+            <option value="subtract">Subtraction (-)</option>
+            <option value="multiply">Multiplication (×)</option>
+            <option value="divide">Division (÷)</option>
+        </select><br>
+        <button type="submit">Calculate</button>
+    </form>
+
+    {% if result is defined %}
+        <h2>Result: {{ result }}</h2>
+    {% endif %}
+</body>
+</html>

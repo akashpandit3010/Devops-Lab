@@ -31,15 +31,14 @@ pipeline {
         }
 
         stage('Run Unit Tests') {
-            steps {
-                echo "🧪 Running unit tests with pytest..."
-                bat '''
-                call venv\\Scripts\\activate
-                pytest --maxfail=1 --disable-warnings -q --junitxml=results.xml
-                '''
-                junit 'results.xml'
-            }
-        }
+    steps {
+        echo "🧪 Running unit tests with pytest..."
+        bat '''
+        call venv\\Scripts\\activate
+        pytest tests/ --maxfail=1 --disable-warnings -v --junitxml=results.xml
+        '''
+    }
+}
 
         stage('Build Docker Image') {
             steps {
@@ -91,4 +90,5 @@ pipeline {
         }
     }
 }
+
 

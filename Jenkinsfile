@@ -35,7 +35,11 @@ pipeline {
         echo "🧪 Running unit tests with pytest..."
         bat '''
         call venv\\Scripts\\activate
-        pytest tests/ --maxfail=1 --disable-warnings -v --junitxml=results.xml
+        if exist tests (
+            pytest tests --maxfail=1 --disable-warnings -v --junitxml=results.xml
+        ) else (
+            pytest --maxfail=1 --disable-warnings -v --junitxml=results.xml
+        )
         '''
     }
 }
@@ -90,5 +94,6 @@ pipeline {
         }
     }
 }
+
 
 

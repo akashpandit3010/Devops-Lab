@@ -30,7 +30,7 @@ pipeline {
                 script {
                     echo '🚀 Running Docker container...'
 
-                    // Stop & remove any existing container with same name
+                    // Stop and remove existing container
                     bat """
                     docker ps -q --filter "name=${CONTAINER_NAME}" | findstr . && (
                         docker stop ${CONTAINER_NAME}
@@ -40,17 +40,16 @@ pipeline {
 
                     // ✅ Run new container
                     bat """
-                    echo Starting new container...
                     docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
                     """
 
-                    // ✅ Wait a few seconds to let Flask app start
+                    // Wait for app to start
                     bat "timeout /t 5 >nul"
 
-                    // ✅ Check running containers
+                    // Verify running container
                     bat "docker ps"
 
-                    // ✅ Show container logs
+                    // Show logs
                     bat "docker logs ${CONTAINER_NAME}"
                 }
             }
@@ -59,7 +58,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline completed successfully! Visit http://localhost:${PORT} to test the app."
+            echo "✅ Pipeline completed successfully! Visit http://localhost:${PORT}"
         }
         failure {
             echo "❌ Build failed. Check container logs below (if available):"

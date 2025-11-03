@@ -35,6 +35,7 @@ pipeline {
         echo "🧪 Running unit tests with pytest..."
         bat '''
         call venv\\Scripts\\activate
+        echo Running pytest...
         if exist tests (
             pytest tests --maxfail=1 --disable-warnings -v --junitxml=results.xml
         ) else (
@@ -43,6 +44,7 @@ pipeline {
         '''
     }
 }
+
 
         stage('Build Docker Image') {
             steps {
@@ -94,6 +96,7 @@ pipeline {
         }
     }
 }
+
 
 
 

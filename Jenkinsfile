@@ -4,13 +4,14 @@ pipeline {
     environment {
         REPO_URL = 'https://github.com/akashpandit3010/Devops-Lab.git'
         BRANCH = 'main'
-        IMAGE_NAME = 'hello-devops-app'
-        CONTAINER_NAME = 'hello-devops-container'
+        IMAGE_NAME = 'hello-devops'
+        CONTAINER_NAME = 'mystifying_kilby'
         PORT = '5000'
     }
 
     stages {
-        stage('Clone Repository') {
+
+        stage('Checkout') {
             steps {
                 git branch: "${BRANCH}", url: "${REPO_URL}"
             }
@@ -30,27 +31,37 @@ pipeline {
                 script {
                     echo '🚀 Running Docker container...'
 
-                    // Stop and remove existing container
+                    // Stop and remove existing container if present
                     bat """
-                    docker ps -q --filter "name=${CONTAINER_NAME}" | findstr . && (
-                        docker stop ${CONTAINER_NAME}
-                        docker rm ${CONTAINER_NAME}
-                    ) || echo No existing container to remove
+                    for /f "tokens=*" %%i in ('docker ps -aq -f "name=${CONTAINER_NAME}"') do (
+                        docker stop %%i
+                        docker rm %%i
+                    )
                     """
 
-                    // ✅ Run new container
-                    bat """
-                    docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
-                    """
+                    // Run new container
+                    bat "docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest"
 
                     // Wait for app to start
                     bat "timeout /t 5 >nul"
 
-                    // Verify running container
+                    // Show running containers
                     bat "docker ps"
 
-                    // Show logs
+                    // Show app logs
                     bat "docker logs ${CONTAINER_NAME}"
+                }
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                script {
+                    echo '🔍 Checking application health...'
+                    // Test if app is reachable
+                    bat """
+                    curl http://localhost:${PORT} || exit /b 1
+                    """
                 }
             }
         }
@@ -58,11 +69,12 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline completed successfully! Visit http://localhost:${PORT}"
+            echo "✅ Pipeline completed successfully! App running at http://localhost:${PORT}"
         }
         failure {
-            echo "❌ Build failed. Check container logs below (if available):"
+            echo "❌ Pipeline failed. Showing all container logs:"
             bat "docker ps -a"
+            bat "docker logs ${CONTAINER_NAME} || echo No logs found"
         }
     }
 }

@@ -15,25 +15,27 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps {
-                echo '📦 Installing Python dependencies...'
-                bat '''
-                python -m venv venv
-                call venv\\Scripts\\activate
-                pip install --upgrade pip
-                pip install -r requirements.txt
-                '''
-            }
-        }
+    steps {
+        echo "📦 Installing Python dependencies..."
+        bat '''
+        python -m venv venv
+        call venv\\Scripts\\activate
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        '''
+    }
+}
 
-        stage('Run Unit Tests') {
-            steps {
-                echo '🧪 Running automated tests...'
-                bat '''
-                call venv\\Scripts\\activate
-                pytest --maxfail=1 --disable-warnings -q --junitxml=pytest-report.xml
-                '''
-            }
+stage('Run Unit Tests') {
+    steps {
+        echo "🧪 Running automated tests..."
+        bat '''
+        call venv\\Scripts\\activate
+        pytest --maxfail=1 --disable-warnings -q --junitxml=results.xml
+        '''
+        junit 'results.xml'
+    }
+}
             post {
                 always {
                     junit 'pytest-report.xml'   // Publishes test results in Jenkins UI
@@ -91,3 +93,4 @@ pipeline {
         }
     }
 }
+

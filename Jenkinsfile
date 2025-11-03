@@ -5,6 +5,8 @@ pipeline {
         REPO_URL = 'https://github.com/akashpandit3010/Devops-Lab.git'
         BRANCH = 'main'
         IMAGE_NAME = 'hello-devops-app'
+        CONTAINER_NAME = 'hello-devops-container'
+        PORT = '5000'
     }
 
     stages {
@@ -17,7 +19,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo 'Building Docker image...'
+                    echo '🛠️ Building Docker image...'
                     bat "docker build -t ${IMAGE_NAME}:latest ."
                 }
             }
@@ -26,11 +28,23 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    echo 'Running Docker container...'
-                    // Stop and remove old container if exists
-                    bat 'docker ps -q --filter "name=hello-devops-container" | findstr . && docker stop hello-devops-container && docker rm hello-devops-container || echo No container to remove'
-                    // Run new container
-                    bat "docker run -d -p 5000:5000 --name hello-devops-container ${IMAGE_NAME}:latest"
+                    echo '🚀 Running Docker container...'
+
+                    // Stop & remove any previous container
+                    bat """
+                    docker ps -q --filter "name=${CONTAINER_NAME}" | findstr . && (
+                        docker stop ${CONTAINER_NAME}
+                        docker rm ${CONTAINER_NAME}
+                    ) || echo No existing container to remove
+                    """
+
+                    // Run container with restart policy and port mapping
+                    bat """
+                    docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
+                    """
+
+                    // Verify container is running
+                    bat 'docker ps'
                 }
             }
         }
@@ -38,10 +52,11 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build and container deployment successful!'
+            echo '✅ Pipeline completed successfully! App should be running on http://localhost:5000'
         }
         failure {
-            echo '❌ Build failed. Check logs for more details.'
+            echo '❌ Build failed. Check Jenkins console or container logs.'
+            bat "docker logs ${CONTAINER_NAME} || echo No logs found"
         }
     }
 }
